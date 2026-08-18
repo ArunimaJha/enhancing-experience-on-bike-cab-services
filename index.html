@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RideEase</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="topnav">
+  <div class="brand">
+    <span class="icon" id="menuIcon" title="Menu">&#9776;</span>
+    <span class="brand-name">RideEase</span>
+  </div>
+  <nav class="nav-links">
+    <span class="nav-item" id="navHome">Home</span>
+    <span class="nav-item" id="navRides">My Rides</span>
+    <span class="nav-item" id="navSupport">Support</span>
+  </nav>
+  <div class="profile-icon" id="profileIcon" title="Profile">&#128100;</div>
+</header>
+
+<main class="dashboard">
+
+  <!-- ============ LEFT PANEL ============ -->
+  <aside class="side-panel">
+
+    <div class="panel-card" id="bookingCard">
+      <h2 class="panel-title">Book a ride</h2>
+
+      <div class="location-card">
+        <div class="loc-row">
+          <span class="dot"></span>
+          <input type="text" id="pickupInput" placeholder="Pickup location" readonly>
+          <span class="icon small" id="gpsBtn" title="Use current location">&#8982;</span>
+        </div>
+        <div class="loc-row">
+          <span class="pin">&#128205;</span>
+          <input type="text" id="dropInput" placeholder="Click on the map to set drop" readonly>
+        </div>
+      </div>
+
+      <div class="fare-card" id="fareCard" style="display:none;">
+        <div class="vehicle-info">
+          <p class="vehicle-type">Bike</p>
+          <p class="eta" id="etaText">-- min away</p>
+        </div>
+        <span class="fare-amount" id="fareAmount">₹--</span>
+      </div>
+
+      <div class="payment-row">
+        <span class="icon small">&#128181;</span>
+        <span>Payment method: <strong>Cash</strong></span>
+      </div>
+
+      <button class="confirm-btn" id="confirmBtn" disabled>Set pickup &amp; drop to continue</button>
+      <p class="status-msg" id="homeStatus"></p>
+    </div>
+
+    <div class="panel-card hidden" id="tripCard">
+      <h2 class="panel-title">Your ride</h2>
+
+      <div class="driver-info">
+        <div class="driver-avatar">R</div>
+        <div>
+          <p class="driver-name">Ravi Kumar</p>
+          <p class="driver-sub">Bike · KA 05 AB 1234</p>
+        </div>
+      </div>
+
+      <div class="fare-card">
+        <div class="vehicle-info">
+          <p class="vehicle-type">Estimated fare</p>
+          <p class="eta" id="trackingEta">-- min away</p>
+        </div>
+        <span class="fare-amount" id="trackingFare">₹--</span>
+      </div>
+
+      <div class="payment-row">
+        <span class="icon small">&#128181;</span>
+        <span>Payment method: <strong>Cash</strong></span>
+      </div>
+
+      <div class="action-row">
+        <button class="secondary-btn" id="chatOpenBtn">
+          <span>&#128172;</span> Chat · auto-translates
+        </button>
+        <button class="sos-btn" id="sosOpenBtn">SOS</button>
+      </div>
+
+      <button class="ghost-btn wide" id="backFromTracking">&#8592; Back to booking</button>
+    </div>
+
+  </aside>
+
+  <!-- ============ MAP PANEL ============ -->
+  <section class="map-panel">
+    <div id="map"></div>
+    <p class="map-hint" id="mapHint">Click anywhere on the map to set your drop location</p>
+
+    <div class="deviation-banner hidden" id="deviationBanner">
+      <span class="warn-icon">&#9888;</span>
+      <span>Driver has taken a different route than planned</span>
+      <span class="close-x" id="closeDeviation">&times;</span>
+    </div>
+
+    <button class="dev-btn hidden" id="devDeviationBtn" title="Simulate route deviation">Simulate deviation</button>
+  </section>
+
+</main>
+
+<!-- ============ SOS MODAL ============ -->
+<div class="modal-overlay hidden" id="sosModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <span class="modal-title">Emergency SOS</span>
+      <span class="close-x" id="sosCloseBtn">&times;</span>
+    </div>
+    <p class="modal-text">
+      This feature is under development — it needs an emergency contact number set up first.
+      Once added, SOS will call them directly and share your live location.
+    </p>
+    <div class="disabled-input-row">
+      <input type="tel" placeholder="Emergency contact number" disabled>
+      <button class="confirm-btn" disabled>Enable SOS (under development)</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CHAT MODAL ============ -->
+<div class="modal-overlay hidden" id="chatModal">
+  <div class="modal-card wide">
+    <div class="modal-header">
+      <span class="modal-title">Chat with Ravi Kumar</span>
+      <select id="langSelect">
+        <option value="kn">Kannada</option>
+        <option value="hi">Hindi</option>
+        <option value="ta">Tamil</option>
+        <option value="te">Telugu</option>
+        <option value="en">English</option>
+      </select>
+      <span class="close-x" id="chatCloseBtn">&times;</span>
+    </div>
+
+    <div class="translate-note">
+      <span>&#129302;</span>
+      <span>Powered by Gemini — auto-detects your language and translates both sides</span>
+    </div>
+
+    <div class="chat-log" id="chatLog"></div>
+
+    <div class="chat-input-row">
+      <button class="ghost-btn" id="simulateReplyBtn">Simulate driver reply</button>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Type in any language...">
+      <button class="send-btn" id="sendChatBtn">&#10148;</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
