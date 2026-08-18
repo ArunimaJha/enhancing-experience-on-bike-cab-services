@@ -1,3 +1,6 @@
+<img width="1600" height="1600" alt="image" src="https://github.com/user-attachments/assets/a5c31230-83a7-4274-95ea-bd5b06389448" />
+
+
 # RideEase
 
 A ride-hailing web app concept (inspired by Rapido), built as an academic project. Riders can book a ride with a real pickup-to-drop map route, get a fare estimate, and chat with the driver using a live AI translation bot.
